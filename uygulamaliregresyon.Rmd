@@ -1,0 +1,341 @@
+---
+title: "Uygulamalı Regresyon"
+author: "Alihan Öztürk"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(warning = FALSE, echo = TRUE)
+```
+
+
+
+satırlar -> zip kodları
+
+### Bağımsız Değişkenler:
+*race*: azınlık yüzdesi
+```{r}
+```
+*fire*: 100 konut başına yangın
+```{r}
+```
+*theft*: 1000 kişi başına hırsızlık
+```{r}
+```
+*age*: 1999'dan önce inşa edilen konutların yüzdesi
+```{r}
+```
+*income*: medyan aile geliri (1000 kişi başına)
+```{r}
+```
+*region*: ilk 20 şehir 0 diğerleri 1 
+
+### Bağımlı değişken: 
+*involact*: 100 konut başına sigortalılık oranı (yenilemeler ve yeni sözleşmeler)
+
+```{r echo=FALSE}
+chdata <- read.csv("C:/Users/irlrl/Desktop/Odev/chdata.csv", sep="")
+```
+
+```{r}
+region <- c(rep(0,20),rep(1,27))
+region.factor <- factor(region)
+chdata$region = region.factor
+chdata
+```
+
+## 1) Değişkenler için saçılma grafiklerini ve betimleyici istatistikleri inceleyin.
+
+```{r}
+str(chdata)
+```
+
+Veriseti 7 değişkenden ve 47 gözlemden oluşmaktadır. Değişkenlerin özellikleri tabloda verilmiştir.
+
+```{r}
+summary(chdata)
+```
+
+
+```{r}
+library(psych)
+
+describe(chdata)
+```
+
+```{r}
+plot(chdata)
+```
+
+Saçılma grafiği yukarıda verilmiştir. Bağımlı değişken olan *involact* 'ın sadece theft değişkeni ile doğrusal bir ilişkili olmadığı gözlemlenmiştir.*Income* değişkeni diğer değişkenler ile orta ve negatif doğrusal ilişkilidir. Aşağıdaki korelasyon matrisi ile bu gözlemleri kontrol edebiliriz. 
+
+```{r}
+cor(chdata[c(1,2,3,4,5,6)])
+```
+
+2. soru için yukarıda verilen korelasyon matrisinde involact ile diğer değişkenlerin yüksek doğrusal ilişkili olmasını ve diğer değişkenlerin kendi aralarında ilişkisiz-düşük ilişkili olmasını isteriz. Bu sayede daha doğru çıkarımlar yapmak mümkün olacaktır.
+
+```{r}
+boxplot(chdata[c(1,2,3,4,5,6)])
+```
+
+Kutu grafiğinde *race* ve *age* değişkeninin geniş bir aralığa sahip olduğunu görebiliriz. Diğer değişkenler göreceli olarak daha dar bir aralıktadır. Grafikte bazı gözlemler aykırı değerler olarak işaretlenmiştir ancak bu varsayımlar regresyon modeli için değil tek bir değişkenin kendi aralığında incelenerek aykırı gözlem olarak seçilmesidir. Burada doğru aykırı gözlem analizi için kalıntıları kullanmamız gerekmektedir. 6. soruda bu konu incelenmiştir.
+
+
+```{r}
+par(mfrow=c(3,2))
+
+plot(density(chdata$race))
+plot(density(chdata$fire))
+plot(density(chdata$theft))
+plot(density(chdata$age))
+plot(density(chdata$involact))
+plot(density(chdata$income))
+
+```
+
+Değişkenlerin çarpıklığına kısaca göz atmak için yoğunluk grafiklerini inceleyebiliriz. *Race* , *fire* , *theft* ,*involact* , *income* değişkenleri sağa çarpıklık gösterirken *age* değişkeni sola çarpıklık göstermiştir.
+
+## 2) Bütün bağımsız değişkenleri kullanarak çoklu regresyon modelini kurup yorumlayın.
+
+(gerekli varsayımlar kabul edildiği düşünülerek çoklu doğrusal regresyon modeli kurulmuştur.)
+
+```{r message=FALSE}
+library(faraway)
+
+model <- lm(involact ~ . ,data = chdata)
+
+summary(model)
+```
+Modelin genel yeterliliğini belirlemek için **Multiple R-squared** ve **Adjusted R-squared** değerlerine bakabiliriz. **Multiple R-squared** birden çok bağımsız değişkenin bağımlı değişkeni açıklama miktarını verir. Yani *involact* değişkenindeki değişimin bağımsız değişkenlerle açıklanabilme oranıdır. Modelimiz *involact* değişkenini 0.7523 açıklamış olarak görülmektedir. Ancak ilgisiz değişken eklemek **Multiple R-squared** değerini arttıracaktır. Bu modelin eskisinden daha iyi olduğu izlenimi verebilir. Bunu önlemek bu terimin ceza terimi ile çarpılması sonucu **Adjusted R-squared** 0.7151 bu veri için daha uygun bir istatistiktir. *race*, *fire* , *theft* ve *age* değişkenleri için oluşturulan eğim katsayılarının için katsayılar 0.95 güven düzeyinde anlamlı çıkmıştır. Model anlamlılığı için varyans analizi uygulanır. Varyans analizi sonucu **p-value** değeri 0.95 güven düzeyinde model anlamlıdır.  
+
+## 3) fire ve theft bağımsız değişkenlerinin katsayılarının eşitliği hipotezini test edin.
+
+Bir önceki sorudaki tablodaya bakarak **Pr(>|t|)** değerleri *fire* değişkeni için 4.59e-05 ve *theft* değişkenini için 0.000922 bulunmuştur. Değişkenler için hipotez kuracak olursak 
+
+```{r}
+```
+
+H0 : bj = 0
+
+```{r}
+```
+
+H1 : bj x 0 
+
+```{r}
+```
+
+olacaktır.İki eğim katsayısı da alpha(0.05) dan küçük olduğundan H0 hipotezi kabul edilemez yani anlamlıdır.
+
+```{r}
+```
+
+## 4) Bağımsız değişkenler için yukarıdaki sıraya göre, 10, 6.2, 29, 60.4, 11.744, 1 değerleri verildiğinde modelden tahmin edilen sigortalılık oranını (involact) tahmin edin ve öngörü için güven aralığını (prediction interval) bulun.
+
+```{r}
+par(mfrow=c(1,1))
+x0 <- data.frame(race=10, fire=6.2, theft=29,  age=60.4, income=11.744, region="1")
+
+predict(model, x0)
+```
+
+
+## 5) Genelleştirilmiş En Küçük Kareler ( Generalized Least Squares) kullanarak modeli tahmin edin.
+```{r}
+```
+
+## 6) Yüksek kaldıraç (high leverage), sapan değer ve etkili gözlem araştırmasını yapın.
+
+
+```{r}
+x_1 <- model.matrix(model)
+lev <- hat(x_1)
+plot(lev,ylab="Leverages",main="Index plot of Leverages")
+abline(h=2*7/47)
+```
+
+Yukarıda verilen grafikte 0.2978723 değerini geçen noktalar kaldıraç değerlerini temsil etmektedir. Bu gözlemleri aykırı değer olarak düşünülmemelidir. Sapan değer için aday olarak düşünülebilir.
+
+
+```{r}
+row.names(chdata)[lev>0.2978723]
+```
+Yukarıda yüksek kaldıraç değerine sahip şehirlerin zip kodları verilmiştir.
+
+
+```{r message=FALSE}
+sr <- summary(model)
+sr$sig
+stud <- model$res/(sr$sig*sqrt(1-lev))
+plot(stud,ylab="Studentized Residuals",main="Studentized Residuals")
+```
+
+Stundentized kalıntılara bakarak verisetinden uzak gözlemleri teşhis edebiliriz. Bir gözlemin aykırı değer olabilmesi için çok fazla inceleme türü vardır. Genelleme yapacak olursak o gözlem çıkarıldığında hata terimleri azalıyorsa ve veri setinden çok uzaktaysa aykırı gözlemdir. Externally studentized residuals olarak bu yöntem bilinmektedir.
+
+```{r}
+jack <- rstudent(model)
+plot(jack,ylab="Jacknife Residuals",main="Jacknife Residuals")
+qt(.05/(47*2),40)
+```
+Jackknife yöntemi her zaman kesin bir sonuç vermez ancak örnek için inceleyebiliriz. Her gözlem mutlak tablo değerinden küçük çıktığı için 0.95 güven düzeyinde sapan değer yoktur olarak yorumlanabilir.
+
+
+
+
+```{r}
+cook <- cooks.distance(model)
+plot(cook,ylab="Cooks distances")
+```
+
+Etkili gözlemleri bulmak için cook uzaklıklarını inceleyebiliriz. Burada en yüksek olan değerler en etkili gözlemlerdir. Her gözlem için modeli nasıl etkilediğine bakmak için verisetinden atarak eğim katsayılarını inceleyebiliriz. Aşağıda bu katsayılar verilmiştir. Tüm veri setini kullandığımızda modelimiz (-0.666491 + 0.008492 x race + 0.038949 x fire - 0.010309 x theft + 0.008777 x age + 0.025504 x income + 0.065002 x region) dur. 
+
+
+```{r}
+models <- lm.influence(model)$coefficients
+models
+```
+Zip kodları verilen parametre değerleri o gözlem dışarı bırakıldığında oluşan model parametreleridir. Parametrelerin değişikliğinin yüksek olması o gözlemin etkili bir değer olduğunun göstergesidir.
+
+
+```{r , echo=FALSE}
+print("başlangıç modelimiz (-0.666491 + 0.008492 x race + 0.038949 x fire - 0.010309 x theft + 0.008777 x age + 0.025504 x income + 0.065002 x region)")
+```
+
+
+```{r}
+Interceptb <-models[,1][models[,1]==max(models[,1])]
+raceb <- models[,2][models[,2]==max(models[,2])] 
+fireb <- models[,3][models[,3]==max(models[,3])]
+theftb <- models[,4][models[,4]==max(models[,4])]
+ageb <- models[,5][models[,5]==max(models[,5])]
+incomeb <- models[,6][models[,6]==max(models[,6])]
+regionb <- models[,7][models[,7]==max(models[,7])]
+list("Intercept"=Interceptb,"race"=raceb,"fire"=fireb,"theft"=theftb,"age"=ageb,"income"=incomeb,"region"=regionb)
+```
+
+Yukarıdaki listede beta katsayılarının altında bulunan gözlemler çıkarıldığında elde edilen pozitif en büyük katsayılardır.
+
+```{r}
+Interceptb <-models[,1][models[,1]==min(models[,1])]
+raceb <- models[,2][models[,2]==min(models[,2])] 
+fireb <- models[,3][models[,3]==min(models[,3])]
+theftb <- models[,4][models[,4]==min(models[,4])]
+ageb <- models[,5][models[,5]==min(models[,5])]
+incomeb <- models[,6][models[,6]==min(models[,6])]
+regionb <- models[,7][models[,7]==min(models[,7])]
+list("Intercept"=Interceptb,"race"=raceb,"fire"=fireb,"theft"=theftb,"age"=ageb,"income"=incomeb,"region"=regionb)
+```
+
+Yukarıdaki listede beta katsayılarının altında bulunan gözlemler çıkarıldığında elde edilen pozitif en küçük katsayılardır.
+
+
+## 7) Kalıntı grafiklerini inceleyin. 
+
+```{r}
+par(mfrow=c(2,2))
+plot(model$fit,model$res,xlab="Fitted",ylab="Residuals")
+abline(h=0)
+plot(model$fit,abs(model$res),xlab="Fitted",ylab="|Residuals|")
+plot(model$fit,chdata$race,xlab="race",ylab="Residuals")
+plot(model$fit,chdata$fire,xlab="fire",ylab="Residuals")
+plot(model$fit,chdata$theft,xlab="theft",ylab="Residuals")
+plot(model$fit,chdata$age,xlab="age",ylab="Residuals")
+plot(model$fit,chdata$income,xlab="income",ylab="Residuals")
+plot(model$fit,chdata$region,xlab="region",ylab="Residuals")
+```
+
+Kalıntıların tahmin değerlerine göre dağılışını incelediğimizde değerlerin sıfırın altında ve üstünde eşit bir şekilde olmasına rağmen bazı noktaların saçılışının rastgele olmadığını gözlemleyebiliriz. Özellikle başlangıçtan 0.3 değerine kadar olan kısımda bir sıkıntı olduğunu söyleyebiliriz. Bu grafik genelde doğrusal olup olmama durumu için incelenir. Doğrusal olma konusunda sorun görünmese de değişen varyans durumundan diğer grafiklerin incelenmesinde yarar vardır. Hataların mutlak değerlerinin tahmin değerlerine göre saçılımı değişen varyansı incelemek için uygun bir grafiktir. Burada saçılımın artan ya da azalan bir yapıda olmaması değişen varyansın bulunmamasını destekler bir durum olabilir. Ancak diğer grafiklere baktığımız zama farklı bir durumun olduğunu görebiliriz. Hataların *race*,*fire*,*age* ve *income* değişkenlerindeki gösterdiği saçılım hataların değişkenler ile ilişkili olduğunu ve değişen varyansın bulunduğu anlamına gelmektedir. Bu durum istemediğimiz bir şeydir. Hataların rastgele dağılması modelin doğru kurulduğu anlamına gelmektedir. Bunu daha iyi incelemek için hatalar ile tahmin değerlerimiz arasında bir model kurup bu modelin eğim katsayısını inceleyebiliriz. Değişen varyansı önlemek için değişken dönüşümü kullanabiliriz ayrıca modelde doğrusal olmama durumu gözlemlenmemiştir. Lineer bir model için bu istediğimiz bir varsayımdır.
+
+```{r}
+summary(lm(abs(model$res) ~ model$fit))
+```
+
+Hataları incelemek için kurduğumuz modelde eğim katsayısı(B1) anlamlı çıkmıştır. Bu da modelimizin eksik ya da hatalı olduğu anlamına gelir. 
+
+
+## 8) Kalıntıların normalliğini araştırın.
+
+
+```{r}
+par(mfrow=c(1,2))
+qqnorm(model$res,ylab="Raw Residuals")
+qqline(model$res)
+
+qqnorm(rstudent(model),ylab="Studentized residuals")
+abline(0,1)
+```
+
+Q-Qplot lara baktığımızda hataların teorik normal dağılım çizgisinin üzerinde olduğunu görebiliriz. Ancak başlarda ve sonlarda çizgi üzerinde bulunmayan noktalar vardır. Kararımızı desteklemek için normallik testleri kullanabiliriz.
+
+```{r}
+hist(model$res,10)
+```
+
+```{r}
+library(nortest)
+lillie.test(model$res)
+shapiro.test(model$res)
+```
+Kolmogorov-Smirnov ve Shapiro-Wilk testine göre kalıntılar (alpha 0.05) %95 güven düzeyinde normal dağılmıştır.
+
+## 9) Kısmi Kalıntı grafiklerini inceleyin.
+
+
+Bir açıklayıcı değişkene karşın artıkların grafiği o açıklayıcı değişken için modelde eğrisel bir etkinin gereli olup olmadığını belirlemede yararlanılır. Modelde diğer değişkenler varken bir açıklayıcı değişkenin marjinal etkisini incelemek için kullanılan bir yoldur.
+
+```{r}
+par(mfrow=c(2,2))
+prplot(model,1)
+prplot(model,2)
+prplot(model,3)
+prplot(model,4)
+prplot(model,5)
+prplot(model,6)
+```
+
+Grafiklere baktığımızda eğrisel bir ilişki olmadığını açıklanan *involact* değişkeninin sırasıyla açıklanamayan tekli değişkenlerin doğrusal ilişkili olduğu, eğrisel bir modele ihtiyaç duyulmadığı görülmektedir.
+
+
+
+## 10) Kısmi Regresyon grafiklerini inceleyin.
+
+Kısmi regresyon grafiği kısmi kalıntı grafiği ile birlikte kullanılır. Sapan ve etkili gözlemleri incelemek için de kullanılır.
+
+```{r}
+par(mfrow=c(2,2))
+d1 <- lm(involact ~ fire + theft +  age + income + region ,data = chdata)$res
+m1 <- lm(race  ~ fire + theft +  age + income + region ,data = chdata)$res
+plot(m1,d1,xlab="race residuals",ylab="chdata residuals",
+     main="Partial Regression")
+
+d2 <- lm(involact ~ race + theft +  age + income + region ,data = chdata)$res
+m2 <- lm(fire  ~ race + theft +  age + income + region ,data = chdata)$res
+plot(m2,d2,xlab="fire residuals",ylab="chdata residuals",
+     main="Partial Regression")
+
+
+d3 <- lm(involact ~ race + fire +  age + income + region ,data = chdata)$res
+m3 <- lm(theft  ~ race + fire +  age + income + region ,data = chdata)$res
+plot(m3,d3,xlab="theft residuals",ylab="chdata residuals",
+     main="Partial Regression")
+
+d4 <- lm(involact ~ race + fire +  theft + income + region ,data = chdata)$res
+m4 <- lm(age  ~ race + fire + theft + income + region ,data = chdata)$res
+plot(m4,d4,xlab="age residuals",ylab="chdata residuals",
+     main="Partial Regression")
+
+
+d5 <- lm(involact ~ race + fire +  theft + age + region ,data = chdata)$res
+m5 <- lm(income  ~ race + fire + theft + age + region ,data = chdata)$res
+plot(m5,d5,xlab="income residuals",ylab="chdata residuals",
+     main="Partial Regression")
+
+```
+
+
+
